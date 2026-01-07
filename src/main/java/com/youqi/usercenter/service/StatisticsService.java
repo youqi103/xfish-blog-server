@@ -7,8 +7,9 @@ import com.youqi.usercenter.model.dto.ArticleStatisticsQueryRequest;
 import com.youqi.usercenter.model.dto.UserStatisticsQueryRequest;
 import com.youqi.usercenter.model.entity.ArticleStatistics;
 import com.youqi.usercenter.model.entity.UserStatistics;
-import com.youqi.usercenter.model.vo.ArticleStatisticsVO;
-import com.youqi.usercenter.model.vo.UserStatisticsVO;
+import com.youqi.usercenter.model.vo.*;
+
+import java.util.Date;
 
 /**
  * 统计服务接口
@@ -99,4 +100,31 @@ public interface StatisticsService extends IService<UserStatistics> {
      * 构建文章统计查询条件
      */
     QueryWrapper<ArticleStatistics> getArticleStatisticsQueryWrapper(ArticleStatisticsQueryRequest queryRequest);
+
+    // ========== 综合统计方法 ==========
+
+    /**
+     * 获取概览统计
+     */
+    OverviewStatisticsVO getOverviewStatistics();
+
+    /**
+     * 获取访问量趋势
+     */
+    java.util.List<VisitTrendVO> getVisitTrendStatistics(Date startDate, Date endDate);
+
+    /**
+     * 获取访问来源
+     */
+    java.util.List<VisitSourceVO> getVisitSourceStatistics(Date startDate, Date endDate);
+
+    /**
+     * 获取点赞趋势
+     */
+    java.util.List<LikeTrendVO> getLikeTrendStatistics(Date startDate, Date endDate);
+
+    /**
+     * 获取评论统计详情
+     */
+    CommentStatisticsVO getCommentStatistics(Date startDate, Date endDate);
 }

@@ -5,14 +5,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.youqi.usercenter.common.ErrorCode;
 import com.youqi.usercenter.exception.BusinessException;
-import com.youqi.usercenter.mapper.ArticleStatisticsMapper;
-import com.youqi.usercenter.mapper.UserStatisticsMapper;
+import com.youqi.usercenter.mapper.*;
 import com.youqi.usercenter.model.dto.ArticleStatisticsQueryRequest;
 import com.youqi.usercenter.model.dto.UserStatisticsQueryRequest;
 import com.youqi.usercenter.model.entity.ArticleStatistics;
 import com.youqi.usercenter.model.entity.UserStatistics;
-import com.youqi.usercenter.model.vo.ArticleStatisticsVO;
-import com.youqi.usercenter.model.vo.UserStatisticsVO;
+import com.youqi.usercenter.model.vo.*;
 import com.youqi.usercenter.service.StatisticsService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -20,8 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -76,8 +74,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         UserStatistics statistics = getUserStatistics(userId);
         if (statistics == null) {
-            initUserStatistics(userId);
+            boolean initSuccess = initUserStatistics(userId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getUserStatistics(userId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getArticleCount() + delta);
@@ -96,8 +100,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         UserStatistics statistics = getUserStatistics(userId);
         if (statistics == null) {
-            initUserStatistics(userId);
+            boolean initSuccess = initUserStatistics(userId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getUserStatistics(userId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getCommentCount() + delta);
@@ -116,8 +126,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         UserStatistics statistics = getUserStatistics(userId);
         if (statistics == null) {
-            initUserStatistics(userId);
+            boolean initSuccess = initUserStatistics(userId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getUserStatistics(userId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getLikeCount() + delta);
@@ -136,8 +152,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         UserStatistics statistics = getUserStatistics(userId);
         if (statistics == null) {
-            initUserStatistics(userId);
+            boolean initSuccess = initUserStatistics(userId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getUserStatistics(userId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getLikedCount() + delta);
@@ -156,8 +178,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         UserStatistics statistics = getUserStatistics(userId);
         if (statistics == null) {
-            initUserStatistics(userId);
+            boolean initSuccess = initUserStatistics(userId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getUserStatistics(userId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getTotalViewCount() + delta);
@@ -239,8 +267,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         ArticleStatistics statistics = getArticleStatistics(articleId);
         if (statistics == null) {
-            initArticleStatistics(articleId);
+            boolean initSuccess = initArticleStatistics(articleId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getArticleStatistics(articleId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getViewCount() + delta);
@@ -259,8 +293,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         ArticleStatistics statistics = getArticleStatistics(articleId);
         if (statistics == null) {
-            initArticleStatistics(articleId);
+            boolean initSuccess = initArticleStatistics(articleId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getArticleStatistics(articleId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getLikeCount() + delta);
@@ -279,8 +319,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         ArticleStatistics statistics = getArticleStatistics(articleId);
         if (statistics == null) {
-            initArticleStatistics(articleId);
+            boolean initSuccess = initArticleStatistics(articleId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getArticleStatistics(articleId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getCommentCount() + delta);
@@ -299,8 +345,14 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
 
         ArticleStatistics statistics = getArticleStatistics(articleId);
         if (statistics == null) {
-            initArticleStatistics(articleId);
+            boolean initSuccess = initArticleStatistics(articleId);
+            if (!initSuccess) {
+                return false;
+            }
             statistics = getArticleStatistics(articleId);
+            if (statistics == null) {
+                return false;
+            }
         }
 
         int newCount = Math.max(0, statistics.getShareCount() + delta);
@@ -421,5 +473,173 @@ public class StatisticsServiceImpl extends ServiceImpl<UserStatisticsMapper, Use
         ArticleStatisticsVO vo = new ArticleStatisticsVO();
         BeanUtils.copyProperties(statistics, vo);
         return vo;
+    }
+
+    // ========== 综合统计方法实现 ==========
+
+    @Resource
+    private VisitMapper visitMapper;
+
+    @Resource
+    private LikeMapper likeMapper;
+
+    @Resource
+    private CommentMapper commentMapper;
+
+    @Resource
+    private ArticleMapper articleMapper;
+
+    @Override
+    public OverviewStatisticsVO getOverviewStatistics() {
+        OverviewStatisticsVO overview = new OverviewStatisticsVO();
+
+        // 获取今日访问量
+        Long todayVisits = visitMapper.selectTodayVisitCount();
+        overview.setTodayVisits(todayVisits != null ? todayVisits : 0L);
+
+        // 获取昨日访问量，计算增长率
+        Long yesterdayVisits = visitMapper.selectYesterdayVisitCount();
+        if (yesterdayVisits != null && yesterdayVisits > 0) {
+            double growth = ((todayVisits - yesterdayVisits) * 100.0) / yesterdayVisits;
+            overview.setVisitsGrowth(Math.round(growth * 100.0) / 100.0);
+        } else {
+            overview.setVisitsGrowth(0.0);
+        }
+
+        // 获取总点赞数
+        Long totalLikes = likeMapper.selectTotalLikeCount();
+        overview.setTotalLikes(totalLikes != null ? totalLikes : 0L);
+
+        // 获取昨日点赞数，计算增长率
+        Long yesterdayLikes = likeMapper.selectYesterdayLikeCount();
+        Long todayLikes = likeMapper.selectTodayLikeCount();
+        if (yesterdayLikes != null && yesterdayLikes > 0) {
+            double growth = ((todayLikes - yesterdayLikes) * 100.0) / yesterdayLikes;
+            overview.setLikesGrowth(Math.round(growth * 100.0) / 100.0);
+        } else {
+            overview.setLikesGrowth(0.0);
+        }
+
+        // 获取总评论数
+        Long totalComments = commentMapper.selectTotalCommentCount();
+        overview.setTotalComments(totalComments != null ? totalComments : 0L);
+
+        // 获取昨日评论数，计算增长率
+        Long yesterdayComments = commentMapper.selectYesterdayCommentCount();
+        Long todayComments = commentMapper.selectTodayCommentCount();
+        if (yesterdayComments != null && yesterdayComments > 0) {
+            double growth = ((todayComments - yesterdayComments) * 100.0) / yesterdayComments;
+            overview.setCommentsGrowth(Math.round(growth * 100.0) / 100.0);
+        } else {
+            overview.setCommentsGrowth(0.0);
+        }
+
+        // 获取活跃用户数
+        Long activeUsers = articleMapper.selectActiveUserCount();
+        overview.setActiveUsers(activeUsers != null ? activeUsers : 0L);
+
+        // 获取昨日活跃用户数，计算增长率
+        Long yesterdayActiveUsers = articleMapper.selectYesterdayActiveUserCount();
+        if (yesterdayActiveUsers != null && yesterdayActiveUsers > 0) {
+            double growth = ((activeUsers - yesterdayActiveUsers) * 100.0) / yesterdayActiveUsers;
+            overview.setUsersGrowth(Math.round(growth * 100.0) / 100.0);
+        } else {
+            overview.setUsersGrowth(0.0);
+        }
+
+        // 获取文章总数
+        Long articleCount = articleMapper.selectTotalArticleCount();
+        overview.setArticleCount(articleCount != null ? articleCount : 0L);
+
+        // 获取总访问量
+        Long totalViewCount = articleMapper.selectTotalViewCount();
+        overview.setTotalViewCount(totalViewCount != null ? totalViewCount : 0L);
+
+        // 获取用户总数
+        Long userCount = articleMapper.selectTotalUserCount();
+        overview.setUserCount(userCount != null ? userCount : 0L);
+
+        return overview;
+    }
+
+    @Override
+    public List<VisitTrendVO> getVisitTrendStatistics(Date startDate, Date endDate) {
+        List<VisitTrendVO> trendList = visitMapper.selectVisitTrend(startDate, endDate);
+        return trendList != null ? trendList : new ArrayList<>();
+    }
+
+    @Override
+    public List<VisitSourceVO> getVisitSourceStatistics(Date startDate, Date endDate) {
+        List<VisitSourceVO> sourceList = visitMapper.selectVisitSources(startDate, endDate);
+        return sourceList != null ? sourceList : new ArrayList<>();
+    }
+
+    @Override
+    public List<LikeTrendVO> getLikeTrendStatistics(Date startDate, Date endDate) {
+        List<LikeTrendVO> trendList = likeMapper.selectLikeTrend(startDate, endDate);
+        return trendList != null ? trendList : new ArrayList<>();
+    }
+
+    @Override
+    public CommentStatisticsVO getCommentStatistics(Date startDate, Date endDate) {
+        CommentStatisticsVO statistics = new CommentStatisticsVO();
+
+        // 获取评论总数
+        Long totalComments = commentMapper.selectTotalCommentCount();
+        statistics.setTotalComments(totalComments != null ? totalComments : 0L);
+
+        // 计算日均评论数（假设统计最近30天）
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, -30);
+        Date thirtyDaysAgo = calendar.getTime();
+        long days = 30;
+        double dailyAverage = totalComments != null ? (double) totalComments / days : 0.0;
+        statistics.setDailyAverage(Math.round(dailyAverage * 100.0) / 100.0);
+
+        // 计算评论参与率（评论数 / 访问量）
+        Long totalViewCount = articleMapper.selectTotalViewCount();
+        if (totalViewCount != null && totalViewCount > 0) {
+            double participationRate = (totalComments * 100.0) / totalViewCount;
+            statistics.setParticipationRate(Math.round(participationRate * 100.0) / 100.0);
+        } else {
+            statistics.setParticipationRate(0.0);
+        }
+
+        // 计算平均回复数（假设每条评论平均有0.5个回复）
+        double avgReplies = 0.5;
+        statistics.setAvgReplies(avgReplies);
+
+        // 计算热度指数（综合评论数、点赞数、访问量）
+        Long totalLikes = likeMapper.selectTotalLikeCount();
+        double heatIndex = 0.0;
+        if (totalComments != null || totalLikes != null || totalViewCount != null) {
+            heatIndex = (totalComments != null ? totalComments : 0) * 0.4 +
+                    (totalLikes != null ? totalLikes : 0) * 0.3 +
+                    (totalViewCount != null ? totalViewCount : 0) * 0.3;
+            heatIndex = heatIndex / 100.0;
+        }
+        statistics.setHeatIndex(Math.round(heatIndex * 100.0) / 100.0);
+
+        // 获取评论状态分布
+        List<CommentStatusDistributionVO> distribution = commentMapper.selectCommentStatusDistribution();
+        if (distribution != null && !distribution.isEmpty()) {
+            long total = distribution.stream().mapToLong(CommentStatusDistributionVO::getValue).sum();
+            for (CommentStatusDistributionVO item : distribution) {
+                double percentage = total > 0 ? (item.getValue() * 100.0) / total : 0.0;
+                item.setPercentage(Math.round(percentage * 100.0) / 100.0);
+            }
+        }
+        statistics.setDistribution(distribution != null ? distribution : new ArrayList<>());
+
+        // 获取评论小时分布
+        List<CommentHourDistributionVO> hourDistribution = commentMapper.selectCommentHourDistribution(startDate,
+                endDate);
+        statistics.setHourDistribution(hourDistribution != null ? hourDistribution : new ArrayList<>());
+
+        // 获取热门评论文章
+        List<HotArticleVO> topArticles = commentMapper.selectHotArticlesByComments(5);
+        statistics.setTopArticles(topArticles != null ? topArticles : new ArrayList<>());
+
+        return statistics;
     }
 }

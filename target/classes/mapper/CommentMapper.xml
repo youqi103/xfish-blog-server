@@ -59,4 +59,91 @@
         ORDER BY c.created_at DESC
     </select>
 
+    <!-- 按日期范围统计评论趋势 -->
+    <select id="selectCommentTrend" resultType="com.youqi.usercenter.model.vo.CommentTrendVO">
+        SELECT
+            DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+            COUNT(*) as comments
+        FROM comments
+        WHERE created_at >= #{startDate}
+          AND created_at &lt;= #{endDate}
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        ORDER BY date ASC
+    </select>
+
+    <!-- 统计今日评论数 -->
+    <select id="selectTodayCommentCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- 统计昨日评论数 -->
+    <select id="selectYesterdayCommentCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+    </select>
+
+    <!-- 统计总评论数 -->
+    <select id="selectTotalCommentCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM comments
+    </select>
+
+    <!-- 统计评论状态分布 -->
+    <select id="selectCommentStatusDistribution" resultType="com.youqi.usercenter.model.vo.CommentStatusDistributionVO">
+        SELECT
+            CASE status
+                WHEN 'pending' THEN '待审核'
+                WHEN 'approved' THEN '已发布'
+                WHEN 'rejected' THEN '已拒绝'
+                WHEN 'spam' THEN '已删除'
+                ELSE status
+            END as type,
+            COUNT(*) as value
+        FROM comments
+        GROUP BY status
+    </select>
+
+    <!-- 统计评论小时分布 -->
+    <select id="selectCommentHourDistribution" resultType="com.youqi.usercenter.model.vo.CommentHourDistributionVO">
+        SELECT
+            HOUR(created_at) as hour,
+            COUNT(*) as count
+        FROM comments
+        WHERE created_at >= #{startDate}
+          AND created_at &lt;= #{endDate}
+        GROUP BY HOUR(created_at)
+        ORDER BY hour ASC
+    </select>
+
+    <!-- 获取热门评论文章 -->
+    <select id="selectHotArticlesByComments" resultType="com.youqi.usercenter.model.vo.HotArticleVO">
+        SELECT
+            a.id,
+            a.title,
+            a.comment_count as commentCount
+        FROM articles a
+        WHERE a.status = '1'
+          AND a.comment_count > 0
+        ORDER BY a.comment_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 统计活跃用户数（近期有评论的用户） -->
+    <select id="selectActiveUserCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM comments
+        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+    </select>
+
+    <!-- 统计昨日活跃用户数 -->
+    <select id="selectYesterdayActiveUserCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM comments
+        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 8 DAY)
+          AND created_at &lt; DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+    </select>
+
 </mapper>
