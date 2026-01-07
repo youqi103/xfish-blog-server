@@ -69,9 +69,9 @@ public class CommentVO implements Serializable {
     private String content;
 
     /**
-     * 状态（0-待审核，1-已通过，2-已拒绝，3-已删除）
+     * 状态（pending-待审核，approved-已通过，rejected-已拒绝，spam-垃圾评论）
      */
-    private Integer status;
+    private String status;
 
     /**
      * IP地址

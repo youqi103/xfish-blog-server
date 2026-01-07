@@ -34,7 +34,23 @@
                 AND c.parent_id = #{parentId}
             </if>
             <if test="status != null and status != ''">
-                AND c.status = #{status}
+                <choose>
+                    <when test="status == 0">
+                        AND c.status = 'pending'
+                    </when>
+                    <when test="status == 1">
+                        AND c.status = 'approved'
+                    </when>
+                    <when test="status == 2">
+                        AND c.status = 'rejected'
+                    </when>
+                    <when test="status == 3">
+                        AND c.status = 'spam'
+                    </when>
+                    <otherwise>
+                        AND c.status = #{status}
+                    </otherwise>
+                </choose>
             </if>
             <if test="userId != null">
                 AND c.user_id = #{userId}

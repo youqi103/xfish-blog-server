@@ -63,7 +63,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         Comment comment = new Comment();
         BeanUtils.copyProperties(commentRequest, comment);
         comment.setUserId(userId);
-        comment.setStatus("0"); // 默认待审核
+        comment.setStatus("pending"); // 默认待审核
         comment.setCreatedAt(new Date());
         comment.setUpdatedAt(new Date());
 
@@ -162,8 +162,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             throw new BusinessException(ErrorCode.NOT_FOUND, "评论不存在");
         }
 
-        // 更新审核状态
-        comment.setStatus(String.valueOf(auditRequest.getAuditStatus()));
+        // 更新审核状态：1-已通过(approved), 2-已拒绝(rejected)
+        String status = auditRequest.getAuditStatus() == 1 ? "approved" : "rejected";
+        comment.setStatus(status);
         comment.setUpdatedAt(new Date());
 
         return this.updateById(comment);
@@ -187,8 +188,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             throw new BusinessException(ErrorCode.NOT_FOUND, "评论不存在");
         }
 
-        // 更新审核状态
-        comment.setStatus(String.valueOf(auditRequest.getAuditStatus()));
+        // 更新审核状态：1-已通过(approved), 2-已拒绝(rejected)
+        String status = auditRequest.getAuditStatus() == 1 ? "approved" : "rejected";
+        comment.setStatus(status);
         comment.setUpdatedAt(new Date());
 
         return this.updateById(comment);
@@ -212,7 +214,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         Integer handleType = auditRequest.getAuditStatus();
         if (handleType == 2) {
             // 删除评论
-            comment.setStatus("3"); // 已删除
+            comment.setStatus("spam"); // 标记为垃圾评论
         } else if (handleType == 3) {
             // 警告用户，保持评论状态
             // 可以记录警告信息到操作日志
@@ -255,7 +257,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         Comment comment = new Comment();
         BeanUtils.copyProperties(commentRequest, comment);
         comment.setUserId(userId);
-        comment.setStatus("1"); // 管理员回复直接通过审核
+        comment.setStatus("approved"); // 管理员回复直接通过审核
         comment.setCreatedAt(new Date());
         comment.setUpdatedAt(new Date());
 
@@ -284,7 +286,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "审核状态不正确");
         }
 
-        // 批量更新审核状态
+        // 批量更新审核状态：1-已通过(approved), 2-已拒绝(rejected)
+        String status = auditStatus == 1 ? "approved" : "rejected";
         List<Comment> comments = this.listByIds(commentIds);
         if (comments.isEmpty()) {
             return true;
@@ -292,7 +295,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
         Date now = new Date();
         for (Comment comment : comments) {
-            comment.setStatus(String.valueOf(auditStatus));
+            comment.setStatus(status);
             comment.setUpdatedAt(now);
         }
 
