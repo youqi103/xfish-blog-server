@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: user-center
+    # DataSourse config
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/blog_system
+    username: root
+    password: "123456"
+  #session 失效时间
+  session:
+    timeout: 86400
+  # Swagger 3.0.0 兼容配置
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true #开启驼峰命名规则映射
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印 SQL
+  global-config:
+    db-config:
+      logic-delete-field: is_delete # 全局逻辑删除字段名
+      logic-delete-value: 1 # 逻辑已删除值
+      logic-not-delete-value: 0 # 逻辑未删除值
+
+debug: true

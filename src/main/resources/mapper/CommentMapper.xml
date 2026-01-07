@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqi.usercenter.mapper.CommentMapper">
+
+    <!-- 分页查询评论列表（包含关联信息） -->
+    <select id="selectCommentVOPage" resultType="com.youqi.usercenter.model.vo.CommentVO">
+        SELECT
+            c.id,
+            c.article_id,
+            c.user_id,
+            c.parent_id,
+            c.content,
+            c.status,
+            c.ip_address,
+            c.user_agent,
+            c.created_at as createTime,
+            c.updated_at as updateTime,
+            a.title as articleTitle,
+            u.nickname as userName,
+            u.nickname as authorName,
+            u.email as authorEmail,
+            u.avatar as authorAvatar,
+            (SELECT COUNT(*) FROM likes WHERE target_type = 'comment' AND target_id = c.id) as likeCount,
+            (SELECT COUNT(*) FROM comments WHERE parent_id = c.id) as replyCount,
+            0 as reportCount
+        FROM comments c
+        LEFT JOIN articles a ON c.article_id = a.id
+        LEFT JOIN users u ON c.user_id = u.id
+        <where>
+            <if test="articleId != null">
+                AND c.article_id = #{articleId}
+            </if>
+            <if test="parentId != null">
+                AND c.parent_id = #{parentId}
+            </if>
+            <if test="status != null and status != ''">
+                AND c.status = #{status}
+            </if>
+            <if test="userId != null">
+                AND c.user_id = #{userId}
+            </if>
+        </where>
+        ORDER BY c.created_at DESC
+    </select>
+
+</mapper>

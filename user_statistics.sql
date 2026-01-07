@@ -1,0 +1,14 @@
+-- 用户统计表
+CREATE TABLE user_statistics (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
+    article_count INT UNSIGNED DEFAULT 0 COMMENT '文章数量',
+    comment_count INT UNSIGNED DEFAULT 0 COMMENT '评论数量',
+    like_count INT UNSIGNED DEFAULT 0 COMMENT '点赞数量',
+    liked_count INT UNSIGNED DEFAULT 0 COMMENT '被点赞数量',
+    total_view_count INT UNSIGNED DEFAULT 0 COMMENT '总访问量',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_user_id (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='用户统计表';

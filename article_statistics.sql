@@ -1,0 +1,13 @@
+-- 文章统计表
+CREATE TABLE article_statistics (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    article_id BIGINT UNSIGNED NOT NULL COMMENT '文章ID',
+    view_count INT UNSIGNED DEFAULT 0 COMMENT '访问量',
+    like_count INT UNSIGNED DEFAULT 0 COMMENT '点赞数',
+    comment_count INT UNSIGNED DEFAULT 0 COMMENT '评论数',
+    share_count INT UNSIGNED DEFAULT 0 COMMENT '分享数',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_article_id (article_id),
+    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='文章统计表';
