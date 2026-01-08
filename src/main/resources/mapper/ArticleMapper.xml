@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqi.usercenter.mapper.ArticleMapper">
+
+    <!-- 统计文章总数 -->
+    <select id="selectTotalArticleCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM articles
+        WHERE status = '1'
+    </select>
+
+    <!-- 统计总访问量（从文章表汇总） -->
+    <select id="selectTotalViewCount" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(view_count), 0)
+        FROM articles
+    </select>
+
+    <!-- 统计用户总数 -->
+    <select id="selectTotalUserCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM users
+    </select>
+
+    <!-- 统计活跃用户数（近期有活动的用户） -->
+    <select id="selectActiveUserCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM (
+            SELECT author_id as user_id FROM articles WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            UNION
+            SELECT user_id FROM comments WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            UNION
+            SELECT user_id FROM likes WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        ) AS active_users
+    </select>
+
+    <!-- 统计昨日活跃用户数 -->
+    <select id="selectYesterdayActiveUserCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM (
+            SELECT author_id as user_id FROM articles
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 8 DAY)
+              AND created_at &lt; DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            UNION
+            SELECT user_id FROM comments
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 8 DAY)
+              AND created_at &lt; DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            UNION
+            SELECT user_id FROM likes
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 8 DAY)
+              AND created_at &lt; DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        ) AS active_users
+    </select>
+
+    <!-- 统计今日新增用户数 -->
+    <select id="selectTodayNewUserCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM users
+        WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- 统计昨日新增用户数 -->
+    <select id="selectYesterdayNewUserCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM users
+        WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+    </select>
+
+</mapper>

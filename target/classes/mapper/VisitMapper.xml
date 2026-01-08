@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqi.usercenter.mapper.VisitMapper">
+
+    <!-- 按日期范围统计访问量趋势 -->
+    <select id="selectVisitTrend" resultType="com.youqi.usercenter.model.vo.VisitTrendVO">
+        SELECT
+            DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+            COUNT(*) as visits
+        FROM visits
+        WHERE created_at >= #{startDate}
+          AND created_at &lt;= #{endDate}
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        ORDER BY date ASC
+    </select>
+
+    <!-- 统计访问来源分布 -->
+    <select id="selectVisitSources" resultType="com.youqi.usercenter.model.vo.VisitSourceVO">
+        SELECT
+            CASE
+                WHEN referrer IS NULL OR referrer = '' THEN '直接访问'
+                WHEN referrer LIKE '%google%' OR referrer LIKE '%baidu%' OR referrer LIKE '%bing%' THEN '搜索引擎'
+                ELSE '外部链接'
+            END as source,
+            COUNT(*) as count
+        FROM visits
+        WHERE created_at >= #{startDate}
+          AND created_at &lt;= #{endDate}
+        GROUP BY source
+        ORDER BY count DESC
+    </select>
+
+    <!-- 统计今日访问量 -->
+    <select id="selectTodayVisitCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM visits
+        WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- 统计昨日访问量 -->
+    <select id="selectYesterdayVisitCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM visits
+        WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+    </select>
+
+    <!-- 统计总访问量 -->
+    <select id="selectTotalVisitCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM visits
+    </select>
+
+</mapper>

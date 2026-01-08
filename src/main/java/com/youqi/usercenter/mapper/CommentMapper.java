@@ -4,10 +4,11 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.youqi.usercenter.model.entity.Comment;
-import com.youqi.usercenter.model.vo.CommentVO;
+import com.youqi.usercenter.model.vo.*;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,4 +33,49 @@ public interface CommentMapper extends BaseMapper<Comment> {
             "WHERE c.article_id = #{articleId} AND c.status = '1' " +
             "ORDER BY c.created_at DESC")
     List<CommentVO> selectCommentVOByArticleId(@Param("articleId") Long articleId);
+
+    /**
+     * 按日期范围统计评论趋势
+     */
+    List<CommentTrendVO> selectCommentTrend(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    /**
+     * 统计今日评论数
+     */
+    Long selectTodayCommentCount();
+
+    /**
+     * 统计昨日评论数
+     */
+    Long selectYesterdayCommentCount();
+
+    /**
+     * 统计总评论数
+     */
+    Long selectTotalCommentCount();
+
+    /**
+     * 统计评论状态分布
+     */
+    List<CommentStatusDistributionVO> selectCommentStatusDistribution();
+
+    /**
+     * 统计评论小时分布
+     */
+    List<CommentHourDistributionVO> selectCommentHourDistribution(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    /**
+     * 获取热门评论文章
+     */
+    List<HotArticleVO> selectHotArticlesByComments(@Param("limit") Integer limit);
+
+    /**
+     * 统计活跃用户数（近期有评论的用户）
+     */
+    Long selectActiveUserCount();
+
+    /**
+     * 统计昨日活跃用户数
+     */
+    Long selectYesterdayActiveUserCount();
 }

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqi.usercenter.mapper.LikeMapper">
+
+    <!-- 按日期范围统计点赞趋势 -->
+    <select id="selectLikeTrend" resultType="com.youqi.usercenter.model.vo.LikeTrendVO">
+        SELECT
+            DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+            COUNT(*) as likes
+        FROM likes
+        WHERE created_at >= #{startDate}
+          AND created_at &lt;= #{endDate}
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        ORDER BY date ASC
+    </select>
+
+    <!-- 统计今日点赞数 -->
+    <select id="selectTodayLikeCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM likes
+        WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- 统计昨日点赞数 -->
+    <select id="selectYesterdayLikeCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM likes
+        WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+    </select>
+
+    <!-- 统计总点赞数 -->
+    <select id="selectTotalLikeCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM likes
+    </select>
+
+    <!-- 获取热门文章（按点赞数排序） -->
+    <select id="selectHotArticlesByLikes" resultType="com.youqi.usercenter.model.vo.HotArticleVO">
+        SELECT
+            a.id,
+            a.title,
+            a.like_count as commentCount
+        FROM articles a
+        WHERE a.status = '1'
+        ORDER BY a.like_count DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
