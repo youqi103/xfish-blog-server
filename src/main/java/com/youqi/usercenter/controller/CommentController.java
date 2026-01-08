@@ -119,15 +119,15 @@ public class CommentController {
     /**
      * 获取文章的评论树
      */
-//    @GetMapping("/tree")
-//    public BaseResponse<List<Comment>> getCommentTree(@RequestParam Long articleId) {
-//        if (articleId == null || articleId <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//
-//        List<CommentVO> commentTree = commentService.getCommentTree(articleId);
-//        return ResultUtils.success(commentTree);
-//    }
+    @GetMapping("/tree")
+   public BaseResponse<List<Comment>> getCommentTree(@RequestParam Long articleId) {
+       if (articleId == null || articleId <= 0) {
+           throw new BusinessException(ErrorCode.PARAMS_ERROR);
+       }
+
+        List<CommentVO> commentTree = commentService.getCommentTree(articleId);
+return ResultUtils.success((List<Comment>) (List<?>) commentTree);
+   }
 
     /**
      * 点赞评论
